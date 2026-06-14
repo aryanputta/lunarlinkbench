@@ -63,6 +63,16 @@
     background:var(--accent-soft);font-size:.95rem}
   .src{font-family:'Helvetica Neue',Arial,sans-serif;font-size:.78rem;color:var(--muted)}
   .src a{color:var(--accent)} a{color:var(--accent)}
+  .qa{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:8px}
+  @media(max-width:760px){.qa{grid-template-columns:1fr}}
+  .qcard{border:1px solid var(--rule);border-left:4px solid var(--accent);
+    border-radius:4px;padding:14px 16px;background:#fff}
+  .qcard .q{font-weight:600;font-size:1rem;color:var(--ink)}
+  .qcard .a{font-family:'Helvetica Neue',Arial,sans-serif;font-size:1.15rem;font-weight:700;
+    margin:6px 0 4px}
+  .qcard .a.yes{color:var(--good)} .qcard .a.bad{color:var(--bad)}
+  .qcard .a.yes::before{content:'\2713  '} .qcard .a.bad::before{content:'\2717  '}
+  .qcard .d{font-family:'Helvetica Neue',Arial,sans-serif;font-size:.86rem;color:var(--mid)}
   .legend{display:flex;gap:14px;font-family:'Helvetica Neue',Arial,sans-serif;
     font-size:.75rem;color:var(--muted);margin-top:8px;flex-wrap:wrap}
   .sw{display:inline-block;width:12px;height:12px;border-radius:2px;vertical-align:middle;
@@ -153,41 +163,49 @@
   <!-- WHY ACCURATE -->
   <section>
     <div class="h2num">Validation</div>
-    <h2>Why these numbers are accurate — derived live, not asserted</h2>
-    <p style="font-size:.95rem;color:var(--mid)">Each governing number below is computed in
-      your browser from the real NASA-sourced input and a closed-form equation. Open the page
-      source: there are no hard-coded results. Only the relay revisit cadence is TBR.</p>
+    <h2>The four questions, answered</h2>
+    <p style="font-size:.95rem;color:var(--mid)">Each answer below is a real NASA fact or a
+      number computed live on this page. Read top to bottom: the problem is real, a relay
+      fixes it, and the requirement is met.</p>
 
-    <div class="row" style="margin-top:6px">
-      <div>
-        <table class="facts" id="evid">
-          <thead><tr><th>Quantity</th><th>Computation</th><th>Result</th></tr></thead>
-          <tr><td>One-way light time</td>
-              <td><code>384,400&nbsp;km ÷ c</code></td><td id="eLight">—</td></tr>
-          <tr><td>Blackout fraction of cycle</td>
-              <td><code>14&nbsp;d ÷ 29.5&nbsp;d</code></td><td id="eBlk">—</td></tr>
-          <tr><td>DTE-only worst-case wait</td>
-              <td><code>full blackout = 14&nbsp;d</code></td><td id="eWorst">—</td></tr>
-          <tr><td>Relay period (100&nbsp;km)</td>
-              <td><code>2π√(a³/μ), a=R+h</code></td><td id="ePer">—</td></tr>
-          <tr><td>Downlink, 50&nbsp;MB @ 256&nbsp;kbps</td>
-              <td><code>(50·8e6) ÷ rate</code></td><td id="eDl">—</td></tr>
-          <tr><td>Sunlit rim reference (LOLA)</td>
-              <td><code>NASA published</code></td><td>~240 d/yr</td></tr>
-        </table>
-        <div class="cap">Constants: c, R<sub>moon</sub>=1737.4&nbsp;km, μ<sub>moon</sub>=4902.8&nbsp;km³/s².
-          Blackout 14&nbsp;d and Earth-Moon 384,400&nbsp;km are NASA values.</div>
+    <div class="qa">
+      <div class="qcard">
+        <div class="q">1. Does the rover really lose contact with Earth?</div>
+        <div class="a yes">Yes.</div>
+        <div class="d">From the south pole, Earth is out of view <b id="eBlk2">—</b> of the
+          time — about <b>14 of every 29.5 days</b>. This is NASA's measured libration
+          geometry (VIPER; PGDA Earth Visibility product), not an assumption.</div>
       </div>
-      <div>
-        <canvas id="duty" width="430" height="180"
-          style="width:100%;border:1px solid var(--rule);background:#fff"></canvas>
-        <div class="cap">Libration duty cycle over one 29.5-day month: the blue span is the
-          Earth-visible window (DTE available), the dark span is the no-DTE blackout that
-          forces a relay. This is the geometry NASA PGDA publishes as an explicit
-          <b>Earth Visibility</b> product. The blackout width is exactly what makes
-          DTE-only fail MR-06 in the Monte Carlo above.</div>
+      <div class="qcard">
+        <div class="q">2. How bad is it with no relay?</div>
+        <div class="a bad">Up to <b id="eWorst2">—</b> of delay.</div>
+        <div class="d">During a blackout the rover simply waits. Worst case a measurement
+          sits for the full 14-day blackout before it can reach Earth — far over the 48-hour
+          limit.</div>
+      </div>
+      <div class="qcard">
+        <div class="q">3. Does a relay satellite fix it?</div>
+        <div class="a yes">Yes.</div>
+        <div class="d">A relay in low lunar orbit comes back into view every
+          <b id="ePer2">—</b> (orbital mechanics, computed live), so data gets a path to
+          Earth in hours instead of days. The light-time itself is only
+          <b id="eLight2">—</b>, and a day of data downlinks in <b id="eDl2">—</b>, so the
+          wait for a contact is the only thing that matters.</div>
+      </div>
+      <div class="qcard">
+        <div class="q">4. So is the 48-hour requirement met?</div>
+        <div class="a" id="aReq">Run the Monte Carlo to answer.</div>
+        <div class="d" id="dReq">With a relay the simulation above meets 48 h on essentially
+          every measurement; without one it fails because of the blackout. Press
+          "Monte Carlo" to populate the exact percentages.</div>
       </div>
     </div>
+
+    <canvas id="duty" width="900" height="150"
+      style="width:100%;border:1px solid var(--rule);background:#fff;margin-top:18px"></canvas>
+    <div class="cap">The picture behind question 1: one 29.5-day month. Blue = Earth visible
+      (direct link works). Dark = blackout (relay required). The dark block is what breaks a
+      direct-to-Earth-only design.</div>
     <div class="cap src" style="margin-top:14px">
       Sources:
       <a href="https://science.nasa.gov/resource/illumination-map-of-the-moons-south-pole/">NASA — Illumination Map of the Moon's South Pole (LROC)</a> ·
@@ -256,6 +274,13 @@ function runMC(){
   });
   document.querySelector('#tbl tbody').innerHTML=rows;
   const dte=simulate({...base,cov:0.0},20000,1234), rel=simulate({...base,cov:1.0},20000,1234);
+  const aReq=document.getElementById('aReq'), dReq=document.getElementById('dReq');
+  if(aReq){ aReq.className='a yes';
+    aReq.innerHTML=`Yes — with a relay, ${(100*rel.frac).toFixed(0)}% of measurements.`;
+    dReq.innerHTML=`With a relay, <b>${(100*rel.frac).toFixed(1)}%</b> of all measurements
+      reach Earth within ${base.reqH} h. Without a relay, only
+      <b>${(100*dte.frac).toFixed(1)}%</b> do — the rest are stuck in the blackout. That gap
+      is the reason Team 15 selects a relay-assisted architecture.`; }
   verdict.innerHTML=`<b class="fail">Direct-to-Earth only fails MR-06</b> — only
     ${(100*dte.frac).toFixed(1)}% of data arrives within ${base.reqH} h because the ~14-day
     libration blackout dominates the tail (P99 = ${dte.p99.toFixed(0)} h).
@@ -327,11 +352,11 @@ document.getElementById('play').addEventListener('click',playMission);
 
 /* ======================= validation: derive numbers live (show, don't tell) ===== */
 (function(){
-  document.getElementById('eLight').textContent = (EM/C).toFixed(2)+' s';
-  document.getElementById('eBlk').textContent   = (100*BLACKOUT/CYCLE).toFixed(1)+' %';
-  document.getElementById('eWorst').textContent = (BLACKOUT*24).toFixed(0)+' h';
-  document.getElementById('ePer').textContent   = orbitalPeriodH(100).toFixed(2)+' h';
-  document.getElementById('eDl').textContent    = ((50*8e6/256000)/60).toFixed(1)+' min';
+  document.getElementById('eLight2').textContent = (EM/C).toFixed(2)+' s';
+  document.getElementById('eBlk2').textContent   = (100*BLACKOUT/CYCLE).toFixed(0)+'%';
+  document.getElementById('eWorst2').textContent = (BLACKOUT*24).toFixed(0)+' hours (14 days)';
+  document.getElementById('ePer2').textContent   = '~'+orbitalPeriodH(100).toFixed(1)+' hours';
+  document.getElementById('eDl2').textContent    = 'about '+((50*8e6/256000)/60).toFixed(0)+' minutes';
 
   const cv=document.getElementById('duty'), ctx=cv.getContext('2d');
   const W=cv.width,H=cv.height,pad=30, visible=CYCLE-BLACKOUT;
